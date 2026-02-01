@@ -1,121 +1,231 @@
 # Library Management System
 
-Complete full-stack library management system with Django REST Framework backend and React frontend.
+A comprehensive library management system with Django backend, React web frontend, and Flutter mobile app.
 
-## 🚀 Quick Start
+## Features
 
-### Prerequisites
-- Python 3.9+
-- Node.js 16+
-- PostgreSQL
-
-### 1. Backend Setup
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run migrations
-python manage.py migrate
-
-# Start backend server
-python manage.py runserver
-```
-
-Backend runs on: **http://127.0.0.1:8000**
-
-### 2. Frontend Setup
-
-```bash
-# Navigate to frontend
-cd frontend-web
-
-# Install dependencies
-npm install
-
-# Start frontend server
-npm run dev
-```
-
-Frontend runs on: **http://localhost:5173**
-
-### 3. Login
-
-- **URL**: http://localhost:5173
-- **Email**: testowner@library.com
-- **Password**: SecurePass123
-
-## 📁 Project Structure
-
-```
-library-management/
-├── apps/                      # Django apps
-│   ├── accounts/             # User authentication
-│   ├── libraries/            # Library management
-│   ├── students/             # Student management
-│   ├── seats/                # Seat management
-│   ├── attendance/           # Attendance tracking
-│   ├── subscriptions/        # Subscription management
-│   ├── notifications/        # Notifications
-│   └── reports/              # Reports & analytics
-├── library_backend/          # Django settings
-├── frontend-web/             # React frontend
-│   ├── src/
-│   │   ├── components/       # Reusable components
-│   │   ├── pages/            # Page components
-│   │   ├── services/         # API services
-│   │   └── utils/            # Utilities
-├── requirements.txt          # Python dependencies
-└── README.md                 # This file
-```
-
-## 🎯 Features
-
-### Admin (Library Owner)
-- Dashboard with real-time statistics
-- Student management (CRUD)
-- Seat management (create, assign, free)
-- Attendance marking
+### For Library Owners (Admin)
+- Dashboard with analytics and statistics
+- Student management (add, edit, view profiles)
+- Seat management and allocation
+- Attendance tracking
 - Subscription management
-- Notifications
-- Reports generation
-- Library profile management
+- QR code generation for attendance
+- Reports and financial analytics
+- Notifications system
 
-### Student Portal
-- View attendance history
-- Check subscription status
-- View notifications
+### For Students
+- Personal dashboard
+- QR code attendance marking
+- Study timer with session tracking
+- Notes management
+- Study goals tracking
+- Task management
+- Attendance history
+- Subscription details
 - Profile management
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 - Django 5.0.1
 - Django REST Framework
-- PostgreSQL
+- PostgreSQL (Supabase compatible)
 - JWT Authentication
-- Celery (background tasks)
+- Celery for background tasks
 
-### Frontend
+### Web Frontend
 - React 18
 - Vite
-- React Router v6
-- Tailwind CSS
-- Axios
-- react-hot-toast
+- TailwindCSS
+- React Router
 
-## 📚 Documentation
+### Mobile App
+- Flutter
+- Riverpod for state management
+- QR code scanner
+- Camera integration
 
-- **API.md** - Complete API documentation
-- **SETUP.md** - Detailed setup instructions
-- **TROUBLESHOOTING.md** - Common issues and solutions
+## Quick Start
 
-## 🔐 Default Credentials
+### Backend Setup
 
-**Library Owner**
-- Email: testowner@library.com
-- Password: SecurePass123
+1. Create virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-## 📝 License
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your database credentials
+```
+
+4. Run migrations:
+```bash
+python manage.py migrate
+```
+
+5. Create superuser:
+```bash
+python manage.py createsuperuser
+```
+
+6. Start server:
+```bash
+python manage.py runserver
+```
+
+### Web Frontend Setup
+
+1. Navigate to frontend directory:
+```bash
+cd frontend-web
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Configure environment:
+```bash
+cp .env.example .env
+# Edit .env with API URL
+```
+
+4. Start development server:
+```bash
+npm run dev
+```
+
+### Flutter App Setup
+
+1. Navigate to Flutter directory:
+```bash
+cd flutter_app
+```
+
+2. Install dependencies:
+```bash
+flutter pub get
+```
+
+3. Update API constants in `lib/core/constants/api_constants.dart`
+
+4. Run the app:
+```bash
+flutter run
+```
+
+## Database Configuration
+
+### Using Supabase (Recommended for Production)
+
+1. Create a project on [Supabase](https://supabase.com)
+2. Get your database credentials from Project Settings → Database
+3. Update `.env` file:
+```env
+DB_NAME=postgres
+DB_USER=postgres.your-project-ref
+DB_PASSWORD=your-password
+DB_HOST=aws-0-region.pooler.supabase.com
+DB_PORT=6543
+```
+
+### Using Local PostgreSQL
+
+1. Install PostgreSQL
+2. Create database:
+```sql
+CREATE DATABASE library_db;
+```
+3. Update `.env` with local credentials
+
+## API Documentation
+
+Once the backend is running, visit:
+- Swagger UI: `http://localhost:8000/swagger/`
+- ReDoc: `http://localhost:8000/redoc/`
+
+## Default Credentials
+
+### Library Owner
+- Library ID: `LIB000001`
+- Email: `testowner@library.com`
+- Password: `SecurePass123`
+
+### Student
+- Library ID: `LIB000001`
+- Student ID: `STU000001-0001`
+- Password: `3210`
+
+## Project Structure
+
+```
+.
+├── apps/                    # Django apps
+│   ├── accounts/           # User authentication
+│   ├── attendance/         # Attendance tracking
+│   ├── libraries/          # Library management
+│   ├── notifications/      # Notifications system
+│   ├── reports/            # Reports and analytics
+│   ├── seats/              # Seat management
+│   ├── students/           # Student management
+│   └── subscriptions/      # Subscription management
+├── frontend-web/           # React web application
+├── flutter_app/            # Flutter mobile application
+├── library_backend/        # Django project settings
+└── media/                  # Uploaded files
+```
+
+## Environment Variables
+
+### Backend (.env)
+```env
+SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1,10.0.2.2
+
+DB_NAME=library_db
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_HOST=localhost
+DB_PORT=5432
+
+JWT_ACCESS_TOKEN_LIFETIME=60
+JWT_REFRESH_TOKEN_LIFETIME=1440
+```
+
+### Frontend (.env)
+```env
+VITE_API_URL=http://localhost:8000/api/v1
+```
+
+## Mobile App Configuration
+
+For Android emulator, the API base URL should be:
+```dart
+static const String baseUrl = 'http://10.0.2.2:8000/api/v1';
+```
+
+For iOS simulator:
+```dart
+static const String baseUrl = 'http://127.0.0.1:8000/api/v1';
+```
+
+For physical devices, use your computer's IP address.
+
+## License
 
 MIT License
+
+## Support
+
+For issues and questions, please create an issue in the repository.
