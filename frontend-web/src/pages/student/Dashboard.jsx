@@ -10,7 +10,7 @@ import { taskService } from '../../services/taskService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
+import {
   faClock, faCheck, faCreditCard, faFire, faStickyNote, faListCheck,
   faPlay, faPlus, faQrcode, faChartLine
 } from '@fortawesome/free-solid-svg-icons';
@@ -52,7 +52,7 @@ const StudentDashboard = () => {
         const studyStatsRes = await studySessionService.getStats('week');
         const studyHours = studyStatsRes?.data?.total_hours || 0;
         setStats(prev => ({ ...prev, studyHours }));
-        
+
         if (studyStatsRes?.data?.daily_breakdown) {
           setStudyData(studyStatsRes.data.daily_breakdown);
         }
@@ -114,8 +114,19 @@ const StudentDashboard = () => {
       {/* Welcome Section with Quote */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
         <h1 className="text-3xl font-bold mb-2">Welcome back, {profile?.full_name}! 👋</h1>
-        <p className="text-purple-100 mb-4">Student ID: {profile?.student_id} • {profile?.library_name}</p>
-        
+        <div className="flex items-center gap-3 text-purple-100 mb-4">
+          <p>Student ID: {profile?.student_id} • {profile?.library_name}</p>
+          {profile?.last_login && (
+            <>
+              <span>•</span>
+              <p>Last login: {new Date(profile.last_login).toLocaleString('en-US', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+              })}</p>
+            </>
+          )}
+        </div>
+
         {quote && (
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mt-4 border border-white/20">
             <p className="text-lg italic mb-2">"{quote.quote}"</p>
@@ -176,21 +187,21 @@ const StudentDashboard = () => {
           </h2>
           <span className="text-sm text-gray-500">Last 7 Days</span>
         </div>
-        
+
         {studyData.length > 0 ? (
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={studyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="day" stroke="#666" />
               <YAxis stroke="#666" />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{ backgroundColor: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px' }}
                 labelStyle={{ color: '#333', fontWeight: 'bold' }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="hours" 
-                stroke="#3b82f6" 
+              <Line
+                type="monotone"
+                dataKey="hours"
+                stroke="#3b82f6"
                 strokeWidth={3}
                 dot={{ fill: '#3b82f6', r: 5 }}
                 activeDot={{ r: 7 }}

@@ -54,4 +54,13 @@ export const API_ENDPOINTS = {
   DASHBOARD: '/api/v1/reports/dashboard/',
   MONTHLY_ATTENDANCE_REPORT: '/api/v1/reports/monthly-attendance/',
   STUDENT_REPORT: '/api/v1/reports/students/',
+  
+  // Super Admin
+  SUPERADMIN_DASHBOARD: '/api/v1/superadmin/dashboard/',
+  SUPERADMIN_STATS: '/api/v1/superadmin/stats/',
+  SUPERADMIN_LIBRARIES: '/api/v1/superadmin/libraries/',
+  SUPERADMIN_LIBRARY_DETAIL: (id) => `/api/v1/superadmin/libraries/${id}/`,
+  SUPERADMIN_LIBRARY_TOGGLE: (id) => `/api/v1/superadmin/libraries/${id}/toggle-status/`,
+  SUPERADMIN_LICENSES: '/api/v1/superadmin/licenses/',
+  SUPERADMIN_LICENSE_DETAIL: (id) => `/api/v1/superadmin/licenses/${id}/`,
 };

@@ -14,23 +14,20 @@ class StudySessionSerializer(serializers.ModelSerializer):
         read_only_fields = ['student', 'duration', 'created_at']
     
     def validate(self, data):
-        # Ensure end_time is after start_time
+        # Ensure end_time is after or equal to start_time (allow same time for very short sessions)
         if data.get('end_time') and data.get('start_time'):
-            if data['end_time'] <= data['start_time']:
-                raise serializers.ValidationError("End time must be after start time")
+            if data['end_time'] < data['start_time']:
+                raise serializers.ValidationError("End time cannot be before start time")
         return data
 
 
 class StudySessionListSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.full_name', read_only=True)
-    date = serializers.SerializerMethodField()
+    date = serializers.DateTimeField(source='start_time', read_only=True)
     
     class Meta:
         model = StudySession
         fields = ['id', 'student_name', 'date', 'start_time', 'end_time', 'duration', 'session_type', 'is_active']
-    
-    def get_date(self, obj):
-        return obj.start_time.date() if obj.start_time else None
 
 
 class NoteSerializer(serializers.ModelSerializer):

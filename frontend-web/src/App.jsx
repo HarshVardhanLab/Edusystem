@@ -7,6 +7,15 @@ import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import AdminLayout from './components/layouts/AdminLayout';
 import StudentLayout from './components/layouts/StudentLayout';
+import SuperAdminLayout from './components/layouts/SuperAdminLayout';
+import SuperAdminDashboard from './pages/superadmin/Dashboard';
+import TestDashboard from './pages/superadmin/TestDashboard';
+import Libraries from './pages/superadmin/Libraries';
+import Licenses from './pages/superadmin/Licenses';
+import Analytics from './pages/superadmin/Analytics';
+import Users from './pages/superadmin/Users';
+import Logs from './pages/superadmin/Logs';
+import Settings from './pages/superadmin/Settings';
 import AdminDashboard from './pages/admin/Dashboard';
 import Students from './pages/admin/Students';
 import Seats from './pages/admin/Seats';
@@ -31,8 +40,12 @@ import { isAuthenticated, getUserRole } from './utils/auth';
 function App() {
   console.log('App: Rendering');
   const getDefaultRoute = () => {
-    if (!isAuthenticated()) return '/login';
+    const authenticated = isAuthenticated();
     const role = getUserRole();
+    console.log('App: getDefaultRoute - authenticated:', authenticated, 'role:', role);
+    
+    if (!authenticated) return '/login';
+    if (role === 'SUPER_ADMIN') return '/superadmin/dashboard';
     return role === 'LIBRARY_OWNER' ? '/admin/dashboard' : '/student/dashboard';
   };
 
@@ -80,6 +93,23 @@ function App() {
           <Route path="subscription" element={<StudentSubscription />} />
           <Route path="notifications" element={<StudentNotifications />} />
           <Route path="profile" element={<StudentProfile />} />
+        </Route>
+
+        <Route path="/superadmin" element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRole="SUPER_ADMIN">
+              <SuperAdminLayout />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }>
+          <Route index element={<Navigate to="/superadmin/dashboard" replace />} />
+          <Route path="dashboard" element={<SuperAdminDashboard />} />
+          <Route path="libraries" element={<Libraries />} />
+          <Route path="licenses" element={<Licenses />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="users" element={<Users />} />
+          <Route path="logs" element={<Logs />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />

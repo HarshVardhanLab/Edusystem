@@ -1,5 +1,5 @@
-name: library_management
-description: A comprehensive library management system
+name: nova_lbs
+description: Nova Library Management System - Complete library management solution
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -30,8 +30,9 @@ dependencies:
   # Date & Time
   intl: ^0.19.0
   
-  # Media
+  # Media & Files
   image_picker: ^1.0.7
+  file_picker: ^8.0.0+1
   
   # QR Code
   qr_code_scanner: ^1.0.1

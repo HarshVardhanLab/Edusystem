@@ -30,6 +30,19 @@ class IsLibraryOwner(permissions.BasePermission):
         
         return False
 
+class IsSuperAdmin(permissions.BasePermission):
+    """
+    Custom permission to only allow super admins to access system-wide data.
+    """
+    message = "You don't have super admin permissions"
+    
+    def has_permission(self, request, view):
+        return (
+            request.user and 
+            request.user.is_authenticated and 
+            (hasattr(request.user, 'superadmin') or request.user.is_superuser)
+        )
+
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
     Custom permission to only allow owners to edit objects

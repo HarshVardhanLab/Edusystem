@@ -25,6 +25,10 @@ const Students = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [csvFile, setCsvFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState('active'); // 'active' or 'trash'
+  const [trashStudents, setTrashStudents] = useState([]);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState('');
   const [formData, setFormData] = useState({
     full_name: '',
     phone: '',
@@ -45,7 +49,10 @@ const Students = () => {
 
   useEffect(() => {
     fetchStudents();
-  }, []);
+    if (activeTab === 'trash') {
+      fetchTrash();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     filterStudents();
@@ -67,7 +74,7 @@ const Students = () => {
 
     // Filter by status
     if (filterStatus !== 'all') {
-      filtered = filtered.filter(s => 
+      filtered = filtered.filter(s =>
         filterStatus === 'active' ? s.is_active : !s.is_active
       );
     }
@@ -90,26 +97,26 @@ const Students = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const data = new FormData();
     data.append('full_name', formData.full_name);
     data.append('phone', formData.phone);
     data.append('time_slot', formData.time_slot);
-    
+
     // Personal details
     if (formData.email) data.append('email', formData.email);
     if (formData.gender) data.append('gender', formData.gender);
     if (formData.date_of_birth) data.append('date_of_birth', formData.date_of_birth);
     if (formData.father_name) data.append('father_name', formData.father_name);
     if (formData.emergency_contact) data.append('emergency_contact', formData.emergency_contact);
-    
+
     // Educational details
     if (formData.preparing_for) data.append('preparing_for', formData.preparing_for);
     if (formData.qualification) data.append('qualification', formData.qualification);
     if (formData.education_level) data.append('education_level', formData.education_level);
     if (formData.institution_name) data.append('institution_name', formData.institution_name);
     if (formData.address) data.append('address', formData.address);
-    
+
     // Documents
     if (photoFile) data.append('photo', photoFile);
     if (idProofFile) data.append('id_proof', idProofFile);
@@ -126,9 +133,9 @@ const Students = () => {
   };
 
   const resetForm = () => {
-    setFormData({ 
-      full_name: '', 
-      phone: '', 
+    setFormData({
+      full_name: '',
+      phone: '',
       email: '',
       time_slot: 'MORNING',
       gender: '',
@@ -147,7 +154,7 @@ const Students = () => {
 
   const handleDeactivate = async (id) => {
     if (!confirm('Are you sure you want to deactivate this student?')) return;
-    
+
     try {
       await studentService.deactivateStudent(id);
       toast.success('Student deactivated');
@@ -168,14 +175,62 @@ const Students = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to permanently delete this student? This action cannot be undone.')) return;
-    
+    if (!confirm('Are you sure you want to move this student to trash? The student will be permanently deleted after 30 days.')) return;
+
     try {
       await studentService.deleteStudent(id);
-      toast.success('Student deleted');
+      toast.success('Student moved to trash. Seat is now available.');
       fetchStudents();
+      if (activeTab === 'trash') {
+        fetchTrash();
+      }
     } catch (error) {
       toast.error('Failed to delete student');
+    }
+  };
+
+  const fetchTrash = async () => {
+    try {
+      const data = await studentService.getTrash();
+      setTrashStudents(data.results || data);
+    } catch (error) {
+      toast.error('Failed to load trash');
+    }
+  };
+
+  const handleResetPassword = async (id) => {
+    try {
+      const response = await studentService.resetPassword(id);
+      setGeneratedPassword(response.password);
+      setShowPasswordModal(true);
+      toast.success('Password reset successfully!');
+    } catch (error) {
+      toast.error('Failed to reset password');
+    }
+  };
+
+  const handleRestore = async (id) => {
+    if (!confirm('Are you sure you want to restore this student?')) return;
+
+    try {
+      await studentService.restoreStudent(id);
+      toast.success('Student restored successfully');
+      fetchTrash();
+      fetchStudents();
+    } catch (error) {
+      toast.error('Failed to restore student');
+    }
+  };
+
+  const handlePermanentDelete = async (id) => {
+    if (!confirm('Are you sure you want to PERMANENTLY delete this student? This action CANNOT be undone!')) return;
+
+    try {
+      await studentService.permanentDelete(id);
+      toast.success('Student permanently deleted');
+      fetchTrash();
+    } catch (error) {
+      toast.error('Failed to permanently delete student');
     }
   };
 
@@ -186,7 +241,7 @@ const Students = () => {
 
   const handleBulkUpload = async (e) => {
     e.preventDefault();
-    
+
     if (!csvFile) {
       toast.error('Please select a CSV file');
       return;
@@ -196,12 +251,12 @@ const Students = () => {
     try {
       const result = await studentService.bulkUploadStudents(csvFile);
       toast.success(result.message);
-      
+
       if (result.errors && result.errors.length > 0) {
         console.error('Upload errors:', result.errors);
         toast.error(`${result.errors.length} rows had errors. Check console for details.`);
       }
-      
+
       setShowBulkUploadModal(false);
       setCsvFile(null);
       fetchStudents();
@@ -260,30 +315,29 @@ const Students = () => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', 'students_template.csv');
     link.style.visibility = 'hidden';
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     toast.success('Template downloaded!');
   };
 
   const columns = [
-    { 
-      key: 'full_name', 
+    {
+      key: 'full_name',
       label: 'Name',
       render: (row) => (
         <div className="flex items-center space-x-2">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-            row.gender === 'MALE' ? 'bg-blue-500' : row.gender === 'FEMALE' ? 'bg-pink-500' : 'bg-gray-500'
-          }`}>
-            {row.gender === 'MALE' ? <FontAwesomeIcon icon={faMale} /> : 
-             row.gender === 'FEMALE' ? <FontAwesomeIcon icon={faFemale} /> : 
-             row.full_name.charAt(0)}
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${row.gender === 'MALE' ? 'bg-blue-500' : row.gender === 'FEMALE' ? 'bg-pink-500' : 'bg-gray-500'
+            }`}>
+            {row.gender === 'MALE' ? <FontAwesomeIcon icon={faMale} /> :
+              row.gender === 'FEMALE' ? <FontAwesomeIcon icon={faFemale} /> :
+                row.full_name.charAt(0)}
           </div>
           <div>
             <p className="font-semibold">{row.full_name}</p>
@@ -292,8 +346,8 @@ const Students = () => {
         </div>
       )
     },
-    { 
-      key: 'contact', 
+    {
+      key: 'contact',
       label: 'Contact',
       render: (row) => (
         <div className="text-sm">
@@ -310,23 +364,23 @@ const Students = () => {
         </div>
       )
     },
-    { 
-      key: 'age', 
+    {
+      key: 'age',
       label: 'Age',
       render: (row) => row.age ? `${row.age} yrs` : '-'
     },
-    { 
-      key: 'preparing_for', 
+    {
+      key: 'preparing_for',
       label: 'Preparing For',
       render: (row) => row.preparing_for || '-'
     },
-    { 
-      key: 'qualification', 
+    {
+      key: 'qualification',
       label: 'Qualification',
       render: (row) => row.qualification || '-'
     },
-    { 
-      key: 'time_slot', 
+    {
+      key: 'time_slot',
       label: 'Time Slot',
       render: (row) => (
         <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
@@ -334,13 +388,12 @@ const Students = () => {
         </span>
       )
     },
-    { 
-      key: 'is_active', 
+    {
+      key: 'is_active',
       label: 'Status',
       render: (row) => (
-        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-          row.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
+        <span className={`px-2 py-1 rounded text-xs font-semibold ${row.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}>
           {row.is_active ? 'Active' : 'Inactive'}
         </span>
       )
@@ -353,6 +406,9 @@ const Students = () => {
           <Button variant="primary" onClick={() => handleViewProfile(row.id)} className="text-xs">
             <FontAwesomeIcon icon={faEye} className="mr-1" />
             View
+          </Button>
+          <Button variant="warning" onClick={() => handleResetPassword(row.id)} className="text-xs">
+            Reset Password
           </Button>
           {row.is_active ? (
             <Button variant="danger" onClick={() => handleDeactivate(row.id)} className="text-xs">
@@ -382,8 +438,8 @@ const Students = () => {
           <p className="text-gray-600 mt-1">Manage student information and records</p>
         </div>
         <div className="flex gap-3">
-          <Button 
-            onClick={() => setShowBulkUploadModal(true)} 
+          <Button
+            onClick={() => setShowBulkUploadModal(true)}
             variant="secondary"
             className="flex items-center space-x-2"
           >
@@ -423,45 +479,140 @@ const Students = () => {
         </Card>
       </div>
 
-      {/* Search and Filter */}
-      <Card>
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-3 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name, phone, or father's name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+      {/* Tabs for Active/Trash */}
+      <div className="flex space-x-4 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('active')}
+          className={`px-6 py-3 font-semibold transition-all ${activeTab === 'active'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-700'
+            }`}
+        >
+          Active Students ({students.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('trash')}
+          className={`px-6 py-3 font-semibold transition-all ${activeTab === 'trash'
+              ? 'text-red-600 border-b-2 border-red-600'
+              : 'text-gray-500 hover:text-gray-700'
+            }`}
+        >
+          Trash ({trashStudents.length})
+        </button>
+      </div>
+
+      {/* Search and Filter - Only for active tab */}
+      {activeTab === 'active' && (
+        <Card>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-3 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by name, phone, or father's name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <FontAwesomeIcon icon={faFilter} className="text-gray-400" />
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Students</option>
+                <option value="active">Active Only</option>
+                <option value="inactive">Inactive Only</option>
+              </select>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faFilter} className="text-gray-400" />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Students</option>
-              <option value="active">Active Only</option>
-              <option value="inactive">Inactive Only</option>
-            </select>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Students Table */}
       <Card>
         {filteredStudents.length === 0 ? (
-          <EmptyState 
-            message={searchTerm || filterStatus !== 'all' ? "No students match your filters" : "No students found"} 
-            icon={<FontAwesomeIcon icon={faUsers} />} 
+          <EmptyState
+            message={searchTerm || filterStatus !== 'all' ? "No students match your filters" : "No students found"}
+            icon={<FontAwesomeIcon icon={faUsers} />}
           />
         ) : (
           <Table columns={columns} data={filteredStudents} />
         )}
       </Card>
+
+      {/* Trash Table */}
+      {activeTab === 'trash' && (
+        <Card>
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Deleted Students (Trash)</h3>
+            <p className="text-sm text-gray-600">Students will be permanently deleted after 30 days</p>
+          </div>
+          {trashStudents.length === 0 ? (
+            <EmptyState
+              message="No students in trash"
+              icon={<FontAwesomeIcon icon={faUsers} />}
+            />
+          ) : (
+            <Table 
+              columns={[
+                {
+                  key: 'full_name',
+                  label: 'Name',
+                  render: (row) => (
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${row.gender === 'MALE' ? 'bg-blue-500' : row.gender === 'FEMALE' ? 'bg-pink-500' : 'bg-gray-500'}`}>
+                        {row.gender === 'MALE' ? <FontAwesomeIcon icon={faMale} /> :
+                          row.gender === 'FEMALE' ? <FontAwesomeIcon icon={faFemale} /> :
+                            row.full_name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-semibold">{row.full_name}</p>
+                        <p className="text-xs text-gray-500">ID: {row.student_id}</p>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  key: 'deleted_at',
+                  label: 'Deleted On',
+                  render: (row) => new Date(row.deleted_at).toLocaleDateString()
+                },
+                {
+                  key: 'days_until_permanent_delete',
+                  label: 'Days Remaining',
+                  render: (row) => (
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      row.days_until_permanent_delete > 7 ? 'bg-green-100 text-green-800' :
+                      row.days_until_permanent_delete > 3 ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {row.days_until_permanent_delete} days
+                    </span>
+                  )
+                },
+                {
+                  key: 'actions',
+                  label: 'Actions',
+                  render: (row) => (
+                    <div className="flex space-x-2">
+                      <Button variant="success" onClick={() => handleRestore(row.id)} className="text-xs">
+                        Restore
+                      </Button>
+                      <Button variant="danger" onClick={() => handlePermanentDelete(row.id)} className="text-xs">
+                        Delete Forever
+                      </Button>
+                    </div>
+                  ),
+                },
+              ]} 
+              data={trashStudents} 
+            />
+          )}
+        </Card>
+      )}
 
       {/* Add Student Modal */}
       <Modal isOpen={showModal} onClose={() => { setShowModal(false); resetForm(); }} title="Add New Student" size="xl">
@@ -649,8 +800,8 @@ const Students = () => {
 
       {/* Student Profile Modal */}
       {showProfile && selectedStudentId && (
-        <StudentProfile 
-          studentId={selectedStudentId} 
+        <StudentProfile
+          studentId={selectedStudentId}
           onClose={() => {
             setShowProfile(false);
             setSelectedStudentId(null);
@@ -660,12 +811,12 @@ const Students = () => {
       )}
 
       {/* Bulk Upload Modal */}
-      <Modal 
-        isOpen={showBulkUploadModal} 
-        onClose={() => { 
-          setShowBulkUploadModal(false); 
-          setCsvFile(null); 
-        }} 
+      <Modal
+        isOpen={showBulkUploadModal}
+        onClose={() => {
+          setShowBulkUploadModal(false);
+          setCsvFile(null);
+        }}
         title="Bulk Upload Students"
       >
         <form onSubmit={handleBulkUpload} className="space-y-6">
@@ -736,9 +887,9 @@ const Students = () => {
           <div className="flex gap-3 pt-4 border-t">
             <button
               type="button"
-              onClick={() => { 
-                setShowBulkUploadModal(false); 
-                setCsvFile(null); 
+              onClick={() => {
+                setShowBulkUploadModal(false);
+                setCsvFile(null);
               }}
               className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all"
             >
@@ -763,6 +914,43 @@ const Students = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Password Reset Modal */}
+      <Modal
+        isOpen={showPasswordModal}
+        onClose={() => {
+          setShowPasswordModal(false);
+          setGeneratedPassword('');
+        }}
+        title="Password Reset Successful"
+      >
+        <div className="space-y-4">
+          <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-4">
+            <p className="text-green-900 font-semibold mb-2">New password generated successfully!</p>
+            <p className="text-green-800 text-sm">Please save this password and share it with the student.</p>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-6 text-center">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Generated Password</label>
+            <div className="bg-white border-2 border-blue-500 rounded-lg p-4 mb-4">
+              <p className="text-4xl font-bold text-blue-600 tracking-wider font-mono">{generatedPassword}</p>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(generatedPassword);
+                toast.success('Password copied to clipboard!');
+              }}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+            >
+              Copy Password
+            </button>
+          </div>
+
+          <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-4">
+            <p className="text-yellow-900 text-sm">⚠️ This password will only be shown once. Make sure to save it!</p>
+          </div>
+        </div>
       </Modal>
     </div>
   );

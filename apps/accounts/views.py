@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.utils import timezone
 from .models import User
 from .serializers import (
     UserSerializer, RegisterSerializer, LoginSerializer, ChangePasswordSerializer
@@ -34,7 +35,66 @@ class LoginView(APIView):
     def post(self, request):
         user_type = request.data.get('user_type', 'owner')
         
-        if user_type == 'student':
+        if user_type == 'superadmin':
+            # Super Admin login
+            email = request.data.get('email')
+            password = request.data.get('password')
+            
+            if not all([email, password]):
+                return Response({
+                    'error': 'Email and Password are required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                # Find super admin user
+                user = User.objects.get(email=email)
+                
+                # Check if user is super admin
+                if not (hasattr(user, 'superadmin') or user.is_superuser):
+                    return Response({
+                        'error': 'Invalid super admin credentials'
+                    }, status=status.HTTP_401_UNAUTHORIZED)
+                
+                # Check password
+                if not user.check_password(password):
+                    return Response({
+                        'error': 'Invalid credentials'
+                    }, status=status.HTTP_401_UNAUTHORIZED)
+                
+                # Update last login
+                previous_login = user.last_login
+                user.last_login = timezone.now()
+                user.save()
+                
+                # Generate tokens
+                refresh = RefreshToken.for_user(user)
+                
+                user_data = {
+                    'id': user.id,
+                    'email': user.email,
+                    'full_name': user.get_full_name(),
+                    'role': 'SUPER_ADMIN',
+                    'last_login': previous_login.isoformat() if previous_login else None,
+                }
+                
+                return Response({
+                    'user': user_data,
+                    'tokens': {
+                        'refresh': str(refresh),
+                        'access': str(refresh.access_token),
+                    }
+                })
+                
+            except User.DoesNotExist:
+                return Response({
+                    'error': 'Invalid credentials'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            except Exception as e:
+                return Response({
+                    'error': f'Login failed: {str(e)}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        elif user_type == 'student':
             # Student login
             from apps.students.models import Student
             from apps.libraries.models import Library
@@ -77,6 +137,11 @@ class LoginView(APIView):
                         'error': 'Your account has been deactivated. Please contact the library.'
                     }, status=status.HTTP_403_FORBIDDEN)
                 
+                # Update last login
+                previous_login = student.last_login
+                student.last_login = timezone.now()
+                student.save()
+                
                 # Create a temporary user-like response
                 user_data = {
                     'id': student.id,
@@ -86,6 +151,7 @@ class LoginView(APIView):
                     'student_id': student.student_id,
                     'library_id': library.library_id,
                     'library_name': library.name,
+                    'last_login': previous_login.isoformat() if previous_login else None,
                 }
                 
                 # Generate tokens
@@ -147,11 +213,23 @@ class LoginView(APIView):
                         'error': 'Invalid credentials'
                     }, status=status.HTTP_401_UNAUTHORIZED)
                 
+                # Update last login
+                previous_login = user.last_login
+                user.last_login = timezone.now()
+                user.save()
+                
+                if hasattr(library, 'last_login'):
+                    library.last_login = timezone.now()
+                    library.save()
+                
                 # Generate tokens
                 refresh = RefreshToken.for_user(user)
                 
+                user_data = UserSerializer(user).data
+                user_data['last_login'] = previous_login.isoformat() if previous_login else None
+                
                 return Response({
-                    'user': UserSerializer(user).data,
+                    'user': user_data,
                     'tokens': {
                         'refresh': str(refresh),
                         'access': str(refresh.access_token),

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { reportService } from '../../services/reportService';
+import { getUser } from '../../utils/auth';
 import Card from '../../components/common/Card';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorMessage from '../../components/common/ErrorMessage';
@@ -11,6 +12,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const user = getUser();
 
   useEffect(() => {
     fetchStats();
@@ -45,9 +47,28 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Welcome Banner */}
+      {user && (
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+          <h1 className="text-3xl font-bold mb-2">Welcome back, {user.full_name}! 👋</h1>
+          <div className="flex items-center gap-4 text-blue-100">
+            <p>Library Admin Dashboard</p>
+            {user.last_login && (
+              <>
+                <span>•</span>
+                <p>Last login: {new Date(user.last_login).toLocaleString('en-US', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short'
+                })}</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-gray-800">Dashboard Overview</h2>
-        <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
+        <p className="text-gray-600">Here's what's happening today.</p>
       </div>
 
       {/* Stats Cards */}
@@ -140,20 +161,20 @@ const Dashboard = () => {
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={stats?.attendance_graph || []}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tickFormatter={formatDate}
                 style={{ fontSize: '12px' }}
               />
               <YAxis style={{ fontSize: '12px' }} />
-              <Tooltip 
+              <Tooltip
                 labelFormatter={formatDate}
                 formatter={(value) => [`${value} students`, 'Present']}
               />
-              <Line 
-                type="monotone" 
-                dataKey="count" 
-                stroke="#3b82f6" 
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#3b82f6"
                 strokeWidth={3}
                 dot={{ fill: '#3b82f6', r: 5 }}
                 activeDot={{ r: 7 }}
@@ -195,8 +216,8 @@ const Dashboard = () => {
           {stats?.unpaid_students?.length > 0 ? (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {stats.unpaid_students.map((student, index) => (
-                <div 
-                  key={student.id} 
+                <div
+                  key={student.id}
                   className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
@@ -233,22 +254,20 @@ const Dashboard = () => {
           {stats?.attendance_leaderboard?.length > 0 ? (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {stats.attendance_leaderboard.map((student, index) => (
-                <div 
-                  key={student.id} 
-                  className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
-                    index === 0 ? 'bg-yellow-50 border-yellow-300 hover:bg-yellow-100' :
+                <div
+                  key={student.id}
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${index === 0 ? 'bg-yellow-50 border-yellow-300 hover:bg-yellow-100' :
                     index === 1 ? 'bg-gray-50 border-gray-300 hover:bg-gray-100' :
-                    index === 2 ? 'bg-orange-50 border-orange-300 hover:bg-orange-100' :
-                    'bg-blue-50 border-blue-200 hover:bg-blue-100'
-                  }`}
+                      index === 2 ? 'bg-orange-50 border-orange-300 hover:bg-orange-100' :
+                        'bg-blue-50 border-blue-200 hover:bg-blue-100'
+                    }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-                      index === 0 ? 'bg-yellow-500 text-white' :
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${index === 0 ? 'bg-yellow-500 text-white' :
                       index === 1 ? 'bg-gray-400 text-white' :
-                      index === 2 ? 'bg-orange-500 text-white' :
-                      'bg-blue-500 text-white'
-                    }`}>
+                        index === 2 ? 'bg-orange-500 text-white' :
+                          'bg-blue-500 text-white'
+                      }`}>
                       {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                     </div>
                     <div>
@@ -289,8 +308,8 @@ const Dashboard = () => {
         <Card className="bg-pink-50 border-l-4 border-pink-500">
           <p className="text-gray-600 text-sm font-medium">Attendance Rate</p>
           <p className="text-3xl font-bold text-pink-600">
-            {stats?.total_students > 0 
-              ? Math.round((stats.present_today / stats.total_students) * 100) 
+            {stats?.total_students > 0
+              ? Math.round((stats.present_today / stats.total_students) * 100)
               : 0}%
           </p>
           <p className="text-xs text-gray-500 mt-1">Today's attendance</p>

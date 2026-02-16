@@ -34,7 +34,13 @@ const Seats = () => {
   const fetchSeats = async () => {
     try {
       const data = await seatService.getSeats();
-      setSeats(data.results || data);
+      // Transform the data to match frontend expectations
+      const transformedSeats = (data.results || data).map(seat => ({
+        ...seat,
+        is_occupied: !seat.is_available,
+        student_name: seat.assigned_to
+      }));
+      setSeats(transformedSeats);
     } catch (error) {
       toast.error('Failed to load seats');
     } finally {
@@ -74,10 +80,10 @@ const Seats = () => {
       await seatService.assignSeat(selectedSeat.id, selectedStudent);
       toast.success('Seat assigned successfully');
       setShowAssignModal(false);
-      fetchSeats();
       setSelectedStudent('');
+      fetchSeats(); // Refresh seat data
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to assign seat');
+      toast.error(error.response?.data?.error || 'Failed to assign seat');
     }
   };
 
@@ -87,9 +93,9 @@ const Seats = () => {
     try {
       await seatService.freeSeat(id);
       toast.success('Seat freed successfully');
-      fetchSeats();
+      fetchSeats(); // Refresh seat data
     } catch (error) {
-      toast.error('Failed to free seat');
+      toast.error(error.response?.data?.error || 'Failed to free seat');
     }
   };
 
@@ -199,10 +205,12 @@ const Seats = () => {
             name="student"
             value={selectedStudent}
             onChange={(e) => setSelectedStudent(e.target.value)}
-            options={students.map(s => ({ 
-              value: s.id, 
-              label: `${s.full_name}${!s.is_active ? ' (Inactive)' : ''}`
-            }))}
+            options={students
+              .filter(s => s.is_active && !s.seat) // Only show active students without seats
+              .map(s => ({ 
+                value: s.id, 
+                label: s.full_name
+              }))}
             required
           />
           <Button type="submit" className="w-full mt-4">Assign Seat</Button>

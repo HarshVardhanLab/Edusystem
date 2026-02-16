@@ -5,13 +5,14 @@ from apps.seats.models import Seat
 class StudentSerializer(serializers.ModelSerializer):
     library_name = serializers.CharField(source='library.name', read_only=True)
     seat_number = serializers.CharField(source='seat.seat_number', read_only=True)
+    seat_id = serializers.IntegerField(source='seat.id', read_only=True)
     age = serializers.IntegerField(read_only=True)
     
     class Meta:
         model = Student
         fields = [
             'id', 'library', 'library_name', 'full_name', 'phone', 'email', 'photo',
-            'id_proof', 'seat', 'seat_number', 'time_slot',
+            'id_proof', 'seat', 'seat_id', 'seat_number', 'time_slot',
             # Personal Details
             'gender', 'date_of_birth', 'age', 'father_name', 'emergency_contact',
             # Educational Details
@@ -35,12 +36,13 @@ class StudentSerializer(serializers.ModelSerializer):
 class StudentListSerializer(serializers.ModelSerializer):
     library_name = serializers.CharField(source='library.name', read_only=True)
     seat_number = serializers.CharField(source='seat.seat_number', read_only=True)
+    seat_id = serializers.IntegerField(source='seat.id', read_only=True)
     age = serializers.IntegerField(read_only=True)
     
     class Meta:
         model = Student
         fields = [
-            'id', 'full_name', 'phone', 'email', 'library_name', 'seat_number', 'time_slot',
+            'id', 'full_name', 'phone', 'email', 'library_name', 'seat', 'seat_id', 'seat_number', 'time_slot',
             'gender', 'age', 'father_name',
             'preparing_for', 'qualification', 'education_level', 'institution_name',
             'is_active'

@@ -47,6 +47,21 @@ export const authService = {
     return { user, tokens };
   },
 
+  async loginSuperAdmin(email, password) {
+    const response = await api.post(API_ENDPOINTS.LOGIN, { 
+      email, 
+      password,
+      user_type: 'superadmin'
+    });
+    const { user, tokens } = response.data;
+    
+    setToken(tokens.access);
+    setRefreshToken(tokens.refresh);
+    setUser(user);
+    
+    return { user, tokens };
+  },
+
   async forgotPassword(email, library_id, student_id = null, user_type = 'owner') {
     const response = await api.post('/api/v1/accounts/forgot-password/', {
       email,

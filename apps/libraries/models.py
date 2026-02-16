@@ -14,6 +14,7 @@ class Library(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    last_login = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         db_table = 'libraries'
@@ -25,12 +26,15 @@ class Library(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.library_id:
-            # Generate unique library ID (e.g., LIB001234)
+            # Generate unique library ID - New format: LIB1020, LIB1021, etc.
             last_library = Library.objects.order_by('-id').first()
             if last_library and last_library.library_id:
-                last_number = int(last_library.library_id.replace('LIB', ''))
-                new_number = last_number + 1
+                try:
+                    last_number = int(last_library.library_id.replace('LIB', ''))
+                    new_number = last_number + 1
+                except ValueError:
+                    new_number = 1020
             else:
-                new_number = 1
-            self.library_id = f'LIB{new_number:06d}'
+                new_number = 1020  # Start from 1020
+            self.library_id = f'LIB{new_number}'
         super().save(*args, **kwargs)

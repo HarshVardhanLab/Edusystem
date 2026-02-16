@@ -36,25 +36,55 @@ class SeatAssignView(APIView):
     permission_classes = [IsAuthenticated, IsLibraryOwner]
     
     def post(self, request, pk):
+        print(f"Seat assignment request - Seat ID: {pk}, Data: {request.data}")
+        
         try:
             seat = Seat.objects.get(pk=pk, library=request.user.library)
+            print(f"Found seat: {seat.seat_number}, Available: {seat.is_available}")
         except Seat.DoesNotExist:
+            print(f"Seat {pk} not found for library {request.user.library}")
             return Response({'error': 'Seat not found'}, status=status.HTTP_404_NOT_FOUND)
         
         if not seat.is_available:
+            print(f"Seat {pk} is not available")
             return Response({'error': 'Seat is not available'}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer = SeatAssignSerializer(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            print(f"Serializer validation failed: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        student = Student.objects.get(id=serializer.validated_data['student_id'])
+        try:
+            student = Student.objects.get(
+                id=serializer.validated_data['student_id'],
+                library=request.user.library
+            )
+            print(f"Found student: {student.full_name}, Current seat: {student.seat}")
+        except Student.DoesNotExist:
+            print(f"Student {serializer.validated_data['student_id']} not found")
+            return Response({'error': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Check if student already has a seat
+        if student.seat:
+            print(f"Student {student.full_name} already has seat {student.seat.seat_number}")
+            return Response({'error': 'Student already has a seat assigned'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Assign the seat to the student
         student.seat = seat
         student.save()
+        print(f"Assigned seat {seat.seat_number} to student {student.full_name}")
         
+        # Mark seat as unavailable
         seat.is_available = False
         seat.save()
+        print(f"Marked seat {seat.seat_number} as unavailable")
         
-        return Response({'message': 'Seat assigned successfully'}, status=status.HTTP_200_OK)
+        # Return updated seat data
+        seat_serializer = SeatSerializer(seat)
+        return Response({
+            'message': 'Seat assigned successfully',
+            'seat': seat_serializer.data
+        }, status=status.HTTP_200_OK)
 
 class SeatFreeView(APIView):
     permission_classes = [IsAuthenticated, IsLibraryOwner]
@@ -65,15 +95,25 @@ class SeatFreeView(APIView):
         except Seat.DoesNotExist:
             return Response({'error': 'Seat not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        if hasattr(seat, 'student'):
-            student = seat.student
-            student.seat = None
-            student.save()
+        # Find and clear the student assignment
+        try:
+            if hasattr(seat, 'student') and seat.student:
+                student = seat.student
+                student.seat = None
+                student.save()
+        except Exception as e:
+            print(f"Warning: Could not clear student assignment: {e}")
         
+        # Mark seat as available
         seat.is_available = True
         seat.save()
         
-        return Response({'message': 'Seat freed successfully'}, status=status.HTTP_200_OK)
+        # Return updated seat data
+        seat_serializer = SeatSerializer(seat)
+        return Response({
+            'message': 'Seat freed successfully',
+            'seat': seat_serializer.data
+        }, status=status.HTTP_200_OK)
 
 class SeatDeleteView(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated, IsLibraryOwner]

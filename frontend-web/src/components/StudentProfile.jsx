@@ -58,20 +58,31 @@ const StudentProfile = ({ studentId, onClose, onUpdate }) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const data = new FormData();
-      Object.keys(formData).forEach(key => {
-        if (formData[key]) {
-          data.append(key, formData[key]);
-        }
-      });
+      // Only send fields that have values
+      const updateData = {};
+      
+      if (formData.full_name) updateData.full_name = formData.full_name;
+      if (formData.phone) updateData.phone = formData.phone;
+      if (formData.email) updateData.email = formData.email;
+      if (formData.time_slot) updateData.time_slot = formData.time_slot;
+      if (formData.gender) updateData.gender = formData.gender;
+      if (formData.date_of_birth) updateData.date_of_birth = formData.date_of_birth;
+      if (formData.father_name) updateData.father_name = formData.father_name;
+      if (formData.emergency_contact) updateData.emergency_contact = formData.emergency_contact;
+      if (formData.preparing_for) updateData.preparing_for = formData.preparing_for;
+      if (formData.qualification) updateData.qualification = formData.qualification;
+      if (formData.education_level) updateData.education_level = formData.education_level;
+      if (formData.institution_name) updateData.institution_name = formData.institution_name;
+      if (formData.address) updateData.address = formData.address;
 
-      await studentService.updateStudent(studentId, data);
+      await studentService.updateStudent(studentId, updateData);
       toast.success('Student updated successfully');
       setEditing(false);
       fetchStudentDetail();
       if (onUpdate) onUpdate();
     } catch (error) {
-      toast.error('Failed to update student');
+      console.error('Update error:', error);
+      toast.error(error.response?.data?.detail || error.response?.data?.error || 'Failed to update student');
     } finally {
       setSaving(false);
     }
@@ -94,6 +105,19 @@ const StudentProfile = ({ studentId, onClose, onUpdate }) => {
       address: student.address || '',
     });
     setEditing(false);
+  };
+
+  const handleResetPassword = async () => {
+    if (!confirm('Are you sure you want to reset this student\'s password?')) return;
+    
+    try {
+      const response = await studentService.resetPassword(studentId);
+      alert(`New Password: ${response.password}\n\nStudent ID: ${response.student_id}\n\nPlease save this password and share it with the student!`);
+      toast.success('Password reset successfully');
+    } catch (error) {
+      console.error('Reset password error:', error);
+      toast.error('Failed to reset password');
+    }
   };
 
   if (loading) return <LoadingSpinner size="lg" />;
@@ -126,7 +150,7 @@ const StudentProfile = ({ studentId, onClose, onUpdate }) => {
             </div>
             <div>
               <h2 className="text-3xl font-bold">{editing ? formData.full_name : student.full_name}</h2>
-              <p className="text-blue-100 mt-1">Student ID: #{student.id}</p>
+              <p className="text-blue-100 mt-1">Student ID: #{student.student_id || student.id}</p>
               <div className="flex items-center space-x-2 mt-2">
                 <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                   student.is_active ? 'bg-green-500' : 'bg-red-500'
@@ -143,13 +167,22 @@ const StudentProfile = ({ studentId, onClose, onUpdate }) => {
           </div>
           <div className="flex items-center space-x-2">
             {!editing && (
-              <button 
-                onClick={() => setEditing(true)} 
-                className="text-white hover:bg-blue-800 p-2 rounded-full transition-colors"
-                title="Edit Profile"
-              >
-                <FontAwesomeIcon icon={faEdit} className="text-xl" />
-              </button>
+              <>
+                <button 
+                  onClick={handleResetPassword} 
+                  className="text-white hover:bg-blue-800 p-2 rounded-full transition-colors"
+                  title="Reset Password"
+                >
+                  <FontAwesomeIcon icon={faUserShield} className="text-xl" />
+                </button>
+                <button 
+                  onClick={() => setEditing(true)} 
+                  className="text-white hover:bg-blue-800 p-2 rounded-full transition-colors"
+                  title="Edit Profile"
+                >
+                  <FontAwesomeIcon icon={faEdit} className="text-xl" />
+                </button>
+              </>
             )}
             <button onClick={onClose} className="text-white hover:bg-blue-800 p-2 rounded-full transition-colors">
               <FontAwesomeIcon icon={faTimes} className="text-2xl" />

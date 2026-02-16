@@ -32,12 +32,9 @@ export const studentService = {
     return response.data;
   },
 
-  async updateStudent(id, formData) {
-    const response = await api.patch(API_ENDPOINTS.STUDENT_DETAIL(id), formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+  async updateStudent(id, data) {
+    // Send as JSON, not FormData for PATCH requests
+    const response = await api.patch(API_ENDPOINTS.STUDENT_DETAIL(id), data);
     return response.data;
   },
 
@@ -53,6 +50,26 @@ export const studentService = {
 
   async deleteStudent(id) {
     const response = await api.delete(API_ENDPOINTS.STUDENT_DELETE(id));
+    return response.data;
+  },
+
+  async resetPassword(id) {
+    const response = await api.post(`/api/v1/students/${id}/set-password/`, {});
+    return response.data;
+  },
+
+  async getTrash() {
+    const response = await api.get('/api/v1/students/trash/');
+    return response.data;
+  },
+
+  async restoreStudent(id) {
+    const response = await api.post(`/api/v1/students/${id}/restore/`);
+    return response.data;
+  },
+
+  async permanentDelete(id) {
+    const response = await api.delete(`/api/v1/students/${id}/permanent-delete/`);
     return response.data;
   },
 };

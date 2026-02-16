@@ -114,6 +114,18 @@ class StudentDetailView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    def patch(self, request, pk):
+        try:
+            student = Student.objects.get(pk=pk, library=request.user.library)
+        except Student.DoesNotExist:
+            return Response({'error': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = StudentSerializer(student, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     def delete(self, request, pk):
         try:
             student = Student.objects.get(pk=pk, library=request.user.library)
@@ -155,8 +167,86 @@ class StudentDeleteView(generics.DestroyAPIView):
     
     def delete(self, request, pk):
         student = self.get_object()
-        student.delete()
-        return Response({'message': 'Student deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        # Soft delete instead of permanent delete
+        student.soft_delete(deleted_by=request.user)
+        return Response({'message': 'Student moved to trash'}, status=status.HTTP_200_OK)
+
+
+class StudentSetPasswordView(APIView):
+    """Set or reset password for a student"""
+    permission_classes = [IsAuthenticated, IsLibraryOwner]
+    
+    def post(self, request, pk):
+        try:
+            student = Student.objects.get(pk=pk, library=request.user.library)
+        except Student.DoesNotExist:
+            return Response({'error': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        password = request.data.get('password')
+        if not password:
+            # Generate random 6-digit password
+            password = student.generate_random_password()
+        
+        student.password = password  # Will be hashed in save()
+        student.save()
+        
+        return Response({
+            'message': 'Password set successfully',
+            'password': password,  # Return plain password to show admin
+            'student_id': student.student_id
+        })
+
+
+class StudentTrashListView(generics.ListAPIView):
+    """List soft-deleted students (trash)"""
+    serializer_class = StudentListSerializer
+    permission_classes = [IsAuthenticated, IsLibraryOwner]
+    
+    def get_queryset(self):
+        return Student.objects.filter(
+            library=self.request.user.library,
+            is_deleted=True
+        ).order_by('-deleted_at')
+
+
+class StudentRestoreView(APIView):
+    """Restore a soft-deleted student"""
+    permission_classes = [IsAuthenticated, IsLibraryOwner]
+    
+    def post(self, request, pk):
+        try:
+            student = Student.objects.get(
+                pk=pk,
+                library=request.user.library,
+                is_deleted=True
+            )
+        except Student.DoesNotExist:
+            return Response({'error': 'Student not found in trash'}, status=status.HTTP_404_NOT_FOUND)
+        
+        student.restore()
+        return Response({
+            'message': 'Student restored successfully',
+            'student': StudentSerializer(student).data
+        })
+
+
+class StudentPermanentDeleteView(APIView):
+    """Permanently delete a student (cannot be undone)"""
+    permission_classes = [IsAuthenticated, IsLibraryOwner]
+    
+    def delete(self, request, pk):
+        try:
+            student = Student.objects.get(
+                pk=pk,
+                library=request.user.library,
+                is_deleted=True
+            )
+        except Student.DoesNotExist:
+            return Response({'error': 'Student not found in trash'}, status=status.HTTP_404_NOT_FOUND)
+        
+        student.delete()  # Permanent delete
+        return Response({'message': 'Student permanently deleted'}, status=status.HTTP_204_NO_CONTENT)
+
 
 class StudentBulkUploadView(APIView):
     permission_classes = [IsAuthenticated, IsLibraryOwner]

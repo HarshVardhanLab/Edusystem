@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
-import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBuilding, faUserGraduate, faEnvelope, faLock, faIdCard, faKey } from '@fortawesome/free-solid-svg-icons';
+import { faBuilding, faUserGraduate, faEnvelope, faLock, faIdCard, faKey, faCrown } from '@fortawesome/free-solid-svg-icons';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('owner'); // 'owner' or 'student'
+  const [activeTab, setActiveTab] = useState('owner'); // 'owner', 'student', or 'superadmin'
   const [loading, setLoading] = useState(false);
   
   // Library Owner form data
@@ -27,12 +26,22 @@ const Login = () => {
     password: ''
   });
 
+  // Super Admin form data
+  const [superAdminData, setSuperAdminData] = useState({
+    email: '',
+    password: ''
+  });
+
   const handleOwnerChange = (e) => {
     setOwnerData({ ...ownerData, [e.target.name]: e.target.value });
   };
 
   const handleStudentChange = (e) => {
     setStudentData({ ...studentData, [e.target.name]: e.target.value });
+  };
+
+  const handleSuperAdminChange = (e) => {
+    setSuperAdminData({ ...superAdminData, [e.target.name]: e.target.value });
   };
 
   const handleOwnerSubmit = async (e) => {
@@ -45,7 +54,16 @@ const Login = () => {
         ownerData.email,
         ownerData.password
       );
-      toast.success('Welcome back!');
+      
+      // Show welcome message with last login
+      const lastLoginMsg = user.last_login 
+        ? `Last login: ${new Date(user.last_login).toLocaleString()}`
+        : 'First time login';
+      
+      toast.success(`Welcome back, ${user.full_name || user.email}! ${lastLoginMsg}`, {
+        duration: 4000
+      });
+      
       navigate('/admin/dashboard');
     } catch (error) {
       const errorMessage = error.response?.data?.detail || error.response?.data?.error || 'Login failed';
@@ -66,10 +84,52 @@ const Login = () => {
         studentData.email,
         studentData.password
       );
-      toast.success('Welcome back!');
+      
+      // Show welcome message with last login
+      const lastLoginMsg = user.last_login 
+        ? `Last login: ${new Date(user.last_login).toLocaleString()}`
+        : 'First time login';
+      
+      toast.success(`Welcome back, ${user.full_name}! ${lastLoginMsg}`, {
+        duration: 4000
+      });
+      
       navigate('/student/dashboard');
     } catch (error) {
       const errorMessage = error.response?.data?.detail || error.response?.data?.error || 'Login failed';
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSuperAdminSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      console.log('Super Admin login attempt:', superAdminData);
+      const { user } = await authService.loginSuperAdmin(
+        superAdminData.email,
+        superAdminData.password
+      );
+      
+      console.log('Super Admin login successful:', user);
+      
+      // Show welcome message with last login
+      const lastLoginMsg = user.last_login 
+        ? `Last login: ${new Date(user.last_login).toLocaleString()}`
+        : 'First time login';
+      
+      toast.success(`Welcome back, Super Admin ${user.full_name || user.email}! ${lastLoginMsg}`, {
+        duration: 4000
+      });
+      
+      console.log('Navigating to super admin dashboard...');
+      navigate('/superadmin/dashboard');
+    } catch (error) {
+      console.error('Super Admin login error:', error);
+      const errorMessage = error.response?.data?.detail || error.response?.data?.error || 'Super Admin login failed';
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -81,8 +141,8 @@ const Login = () => {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 text-center">
-          <h1 className="text-3xl font-bold mb-2">Library Management System</h1>
-          <p className="text-blue-100">Sign in to continue</p>
+          <h1 className="text-3xl font-bold mb-2">Nova LBS</h1>
+          <p className="text-blue-100">Library Business System - Sign in to continue</p>
         </div>
 
         {/* Tabs */}
@@ -113,6 +173,16 @@ const Login = () => {
 
         {/* Forms */}
         <div className="p-8">
+          {activeTab === 'superadmin' && (
+            /* Super Admin Login Form */
+            <div className="mb-4 p-3 bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg border border-purple-200">
+              <div className="flex items-center justify-center text-purple-700">
+                <FontAwesomeIcon icon={faCrown} className="mr-2" />
+                <span className="font-semibold">System Administrator Access</span>
+              </div>
+            </div>
+          )}
+          
           {activeTab === 'owner' ? (
             /* Library Owner Login Form */
             <form onSubmit={handleOwnerSubmit} className="space-y-4">
@@ -126,7 +196,7 @@ const Login = () => {
                   name="library_id"
                   value={ownerData.library_id}
                   onChange={handleOwnerChange}
-                  placeholder="e.g., LIB000001"
+                  placeholder="e.g., LIB1020"
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 />
@@ -195,7 +265,7 @@ const Login = () => {
                 </Link>
               </div>
             </form>
-          ) : (
+          ) : activeTab === 'student' ? (
             /* Student Login Form */
             <form onSubmit={handleStudentSubmit} className="space-y-4">
               <div>
@@ -208,7 +278,7 @@ const Login = () => {
                   name="library_id"
                   value={studentData.library_id}
                   onChange={handleStudentChange}
-                  placeholder="e.g., LIB000001"
+                  placeholder="e.g., LIB1020"
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
                 />
@@ -224,7 +294,7 @@ const Login = () => {
                   name="student_id"
                   value={studentData.student_id}
                   onChange={handleStudentChange}
-                  placeholder="e.g., STU000001-0001"
+                  placeholder="e.g., STU00001"
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
                 />
@@ -292,12 +362,82 @@ const Login = () => {
                 </p>
               </div>
             </form>
+          ) : (
+            /* Super Admin Login Form */
+            <form onSubmit={handleSuperAdminSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <FontAwesomeIcon icon={faEnvelope} className="mr-2 text-purple-600" />
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={superAdminData.email}
+                  onChange={handleSuperAdminChange}
+                  placeholder="superadmin@novalbs.com"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <FontAwesomeIcon icon={faLock} className="mr-2 text-purple-600" />
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={superAdminData.password}
+                  onChange={handleSuperAdminChange}
+                  placeholder="Enter super admin password"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 hover:from-purple-700 hover:to-blue-800 text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-105"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Signing in...
+                  </span>
+                ) : (
+                  <>
+                    <FontAwesomeIcon icon={faCrown} className="mr-2" />
+                    Sign In as Super Admin
+                  </>
+                )}
+              </Button>
+
+              <div className="text-center text-sm text-gray-600 mt-4">
+                <p className="text-xs text-gray-500">
+                  <FontAwesomeIcon icon={faCrown} className="mr-1" />
+                  System administrator access only
+                </p>
+              </div>
+            </form>
           )}
         </div>
 
         {/* Footer */}
         <div className="bg-gray-50 px-8 py-4 text-center text-xs text-gray-600 border-t">
-          <p>© 2026 Library Management System. All rights reserved.</p>
+          <p>© 2026 Nova LBS - Library Business System. All rights reserved.</p>
+          <button
+            onClick={() => setActiveTab('superadmin')}
+            className="mt-2 text-xs text-gray-400 hover:text-purple-600 transition-colors underline"
+          >
+            <FontAwesomeIcon icon={faCrown} className="mr-1" />
+            System Administrator
+          </button>
         </div>
       </div>
     </div>
