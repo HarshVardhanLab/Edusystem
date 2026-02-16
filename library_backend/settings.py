@@ -83,12 +83,33 @@ WSGI_APPLICATION = 'library_backend.wsgi.application'
 # Database
 # Use DATABASE_URL if available (Render provides this), otherwise use individual settings
 database_url = os.environ.get('DATABASE_URL', '').strip()
+
 if database_url:  # Check if DATABASE_URL exists and is not empty
-    DATABASES = {
-        'default': dj_database_url.parse(database_url, conn_max_age=600)
-    }
+    try:
+        DATABASES = {
+            'default': dj_database_url.parse(database_url, conn_max_age=600)
+        }
+    except ValueError as e:
+        # If DATABASE_URL is set but invalid, raise a clear error
+        raise ValueError(
+            f"Invalid DATABASE_URL: {str(e)}\n"
+            "Please check your DATABASE_URL environment variable on Render.\n"
+            "It should look like: postgresql://user:password@host:port/database"
+        )
 else:
     # Fallback to individual database settings for local development
+    # In production (Render), DATABASE_URL MUST be set
+    if os.environ.get('RENDER'):
+        raise ValueError(
+            "DATABASE_URL environment variable is required on Render!\n"
+            "Steps to fix:\n"
+            "1. Go to your PostgreSQL database on Render\n"
+            "2. Copy the 'Internal Database URL'\n"
+            "3. Go to your Web Service → Environment tab\n"
+            "4. Add: DATABASE_URL=<paste-the-url-here>\n"
+            "5. Save and redeploy"
+        )
+    
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
