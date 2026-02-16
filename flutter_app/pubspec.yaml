@@ -33,10 +33,18 @@ dependencies:
   # Media & Files
   image_picker: ^1.0.7
   file_picker: ^8.0.0+1
+  path_provider: ^2.1.1
   
   # QR Code
   qr_code_scanner: ^1.0.1
   qr_flutter: ^4.1.0
+  
+  # Calendar
+  table_calendar: ^3.0.9
+  
+  # PDF & Sharing
+  pdf: ^3.10.7
+  share_plus: ^7.2.1
   
   # Notifications
   fluttertoast: ^8.2.4

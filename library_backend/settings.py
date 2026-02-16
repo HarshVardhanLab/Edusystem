@@ -1,12 +1,22 @@
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+import dj_database_url
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-production')
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,10.0.2.2').split(',')
+
+# Parse ALLOWED_HOSTS from environment
+allowed_hosts_str = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,10.0.2.2')
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',')]
+
+# Add Render domain if RENDER environment variable is set
+if 'RENDER' in os.environ:
+    ALLOWED_HOSTS.append(os.environ.get('RENDER_EXTERNAL_HOSTNAME'))
+    DEBUG = False
 
 # Application definition
 INSTALLED_APPS = [
@@ -40,6 +50,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -70,16 +81,23 @@ TEMPLATES = [
 WSGI_APPLICATION = 'library_backend.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='library_db'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default='postgres'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
+# Use DATABASE_URL if available (Render provides this), otherwise use individual settings
+database_url = config('DATABASE_URL', default=None)
+if database_url:
+    DATABASES = {
+        'default': dj_database_url.parse(database_url, conn_max_age=600)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME', default='library_db'),
+            'USER': config('DB_USER', default='postgres'),
+            'PASSWORD': config('DB_PASSWORD', default='postgres'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
+        }
+    }
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
@@ -99,9 +117,24 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = []
+
+# WhiteNoise configuration for serving static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # Media files
 MEDIA_URL = '/media/'
@@ -170,6 +203,18 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5174",
     "http://127.0.0.1:5174",
 ]
+
+# Add production frontend URLs from environment
+cors_origins_str = config('CORS_ALLOWED_ORIGINS', default='')
+if cors_origins_str:
+    CORS_ALLOWED_ORIGINS.extend([origin.strip() for origin in cors_origins_str.split(',') if origin.strip()])
+
+# For development/testing - remove in production if you want strict CORS
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = False  # Set to True only for testing
+else:
+    # In production, you might want to allow credentials
+    CORS_ALLOW_CREDENTIALS = True
 
 # Logging
 LOGGING = {

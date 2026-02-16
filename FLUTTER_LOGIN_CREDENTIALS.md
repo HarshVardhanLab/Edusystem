@@ -1,64 +1,78 @@
-# Flutter App Login Credentials
+# Nova LBS - Login Credentials
 
 ## ✅ Working Credentials for Testing
 
-### Library: LIB2 (Nova coders)
-
----
-
-## 📱 Student Login
-
-### Student 1: Radhe Shyam
-- **Library ID**: `LIB2`
-- **Student ID**: `STU00001`
-- **Password**: `3755`
-- **Email**: harshvardhan.vision@gmail.com
-- **Status**: ✅ Active, Password Set
-
-### Student 2: Harsh
-- **Library ID**: `LIB2`
-- **Student ID**: `STU00002`
-- **Password**: `3755`
-- **Email**: harsh@mail.com
-- **Status**: ✅ Active, Password Set
-
-### Student 3: Nameen
-- **Library ID**: `LIB2`
-- **Student ID**: `STU00003`
-- **Password**: `3753`
-- **Email**: None
-- **Status**: ✅ Active, Password Set
+### Library: LIB1020 (Nova Study Library)
 
 ---
 
 ## 👨‍💼 Library Admin Login
 
-### Nova coders Admin
-- **Library ID**: `LIB2`
-- **Email**: `novaadmin@library.com`
-- **Password**: `NovaAdmin123`
+### Nova Study Library Admin
+- **Library ID**: `LIB1020`
+- **Email**: `admin@novalibrary.com`
+- **Password**: `Admin@123`
 - **Status**: ✅ Active
+
+---
+
+## 📱 Student Login
+
+### Student 1: Rahul Sharma
+- **Library ID**: `LIB1020`
+- **Student ID**: `STU00001`
+- **Password**: `3211`
+- **Email**: rahul@example.com
+- **Status**: ✅ Active, Subscription Active
+
+### Student 2: Priya Patel
+- **Library ID**: `LIB1020`
+- **Student ID**: `STU00002`
+- **Password**: `3212`
+- **Email**: priya@example.com
+- **Status**: ✅ Active, Subscription Active
+
+### Student 3: Amit Kumar
+- **Library ID**: `LIB1020`
+- **Student ID**: `STU00003`
+- **Password**: `3213`
+- **Email**: amit@example.com
+- **Status**: ✅ Active, Subscription Active
+
+### Student 4: Sneha Reddy
+- **Library ID**: `LIB1020`
+- **Student ID**: `STU00004`
+- **Password**: `3214`
+- **Email**: sneha@example.com
+- **Status**: ✅ Active, Subscription Active
+
+### Student 5: Vikram Singh
+- **Library ID**: `LIB1020`
+- **Student ID**: `STU00005`
+- **Password**: `3215`
+- **Email**: vikram@example.com
+- **Status**: ✅ Active, Subscription Active
 
 ---
 
 ## 🔐 Login Instructions
 
 ### For Students:
-1. Open the Flutter app
+1. Open the Flutter app or Web app
 2. Tap on **"Student"** tab
 3. Enter:
-   - Library ID: `LIB2`
+   - Library ID: `LIB1020`
    - Student ID: (use one from above)
    - Password: (use corresponding password)
 4. Tap **"Login as Student"**
 
 ### For Library Admin:
-1. Open the Flutter app
+1. Open the Flutter app or Web app
 2. Stay on **"Library Admin"** tab
 3. Enter:
-   - Library ID: `LIB2`
-   - Email: `novaadmin@library.com`
-   - Password: `NovaAdmin123`
+   - Library ID: `LIB1020`
+   - Email: `admin@novalibrary.com`
+   - Password: `Admin@123`
 4. Tap **"Login as Admin"**
 
 ---
@@ -77,10 +91,13 @@ This is correct for Android emulator accessing localhost.
 ## ✅ Backend Status
 
 - ✅ Django server running on port 8000
+- ✅ Database: library_db (PostgreSQL)
 - ✅ Student login API working
 - ✅ Library admin login API working
 - ✅ All passwords are set and hashed
 - ✅ JWT tokens are being generated correctly
+- ✅ 50 seats created
+- ✅ 5 students with active subscriptions
 
 ---
 
@@ -93,19 +110,14 @@ This is correct for Android emulator accessing localhost.
    lsof -i :8000
    ```
 
-2. **Check student has password**:
-   ```bash
-   python manage.py shell -c "from apps.students.models import Student; s = Student.objects.get(student_id='STU00001'); print(f'Has password: {bool(s.password)}')"
-   ```
-
-3. **Test API directly**:
+2. **Test API directly**:
    ```bash
    curl -X POST http://localhost:8000/api/v1/accounts/login/ \
      -H "Content-Type: application/json" \
-     -d '{"user_type": "student", "library_id": "LIB2", "student_id": "STU00001", "password": "3755"}'
+     -d '{"user_type": "student", "library_id": "LIB1020", "student_id": "STU00001", "password": "3211"}'
    ```
 
-4. **Check Flutter app logs**:
+3. **Check Flutter app logs**:
    - Look for "Login DioException" messages
    - Check for network errors
    - Verify API URL is correct
@@ -115,7 +127,33 @@ This is correct for Android emulator accessing localhost.
 ## 📝 Notes
 
 - Email is **optional** for student login
-- Password is based on last 4 digits of phone number
-- All students in LIB2 now have passwords set
+- Password is last 4 digits of phone number
+- All students have active monthly subscriptions (₹1500)
 - Passwords are hashed using Django's password hasher
-- JWT tokens expire after 60 minutes (access) and 24 hours (refresh)
+- JWT tokens expire after 7 days (access) and 30 days (refresh)
+- Library has 50 flexible seats available
+
+---
+
+## 🎯 Quick Test
+
+**Test Student Login:**
+```bash
+curl -X POST http://localhost:8000/api/v1/accounts/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"user_type": "student", "library_id": "LIB1020", "student_id": "STU00001", "password": "3211"}'
+```
+
+**Test Admin Login:**
+```bash
+curl -X POST http://localhost:8000/api/v1/accounts/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"user_type": "library", "library_id": "LIB1020", "email": "admin@novalibrary.com", "password": "Admin@123"}'
+```
+
+---
+
+**Generated**: February 16, 2026  
+**Database**: Fresh setup with test data  
+**Status**: ✅ Ready for testing
+
