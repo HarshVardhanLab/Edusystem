@@ -82,12 +82,13 @@ WSGI_APPLICATION = 'library_backend.wsgi.application'
 
 # Database
 # Use DATABASE_URL if available (Render provides this), otherwise use individual settings
-database_url = config('DATABASE_URL', default=None)
-if database_url:
+database_url = os.environ.get('DATABASE_URL', '').strip()
+if database_url:  # Check if DATABASE_URL exists and is not empty
     DATABASES = {
         'default': dj_database_url.parse(database_url, conn_max_age=600)
     }
 else:
+    # Fallback to individual database settings for local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

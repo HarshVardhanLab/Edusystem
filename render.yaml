@@ -1,26 +1,55 @@
+# Render Blueprint - Infrastructure as Code
+# This file allows you to deploy your entire stack with one click
+# Learn more: https://render.com/docs/infrastructure-as-code
+
 services:
-  - type: web
-    name: edusystem-backend
+  # PostgreSQL Database
+  - type: pserv
+    name: nova-library-db
     env: python
+    plan: free  # Change to 'starter' for production
+    region: oregon  # Change to your preferred region
+    databases:
+      - name: library_db
+        user: library_user
+
+  # Django Web Service
+  - type: web
+    name: nova-library-backend
+    env: python
+    region: oregon  # Should match database region
+    plan: free  # Change to 'starter' for production ($7/month)
     buildCommand: "./build.sh"
     startCommand: "gunicorn library_backend.wsgi:application"
+    healthCheckPath: /api/v1/
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11
-      - key: SECRET_KEY
-        generateValue: true
+        value: 3.11.9
       - key: DEBUG
-        value: False
-      - key: ALLOWED_HOSTS
-        sync: false
+        value: false
+      - key: RENDER
+        value: true
+      - key: SECRET_KEY
+        generateValue: true  # Render will generate a secure key
       - key: DATABASE_URL
         fromDatabase:
-          name: edusystem-db
+          name: nova-library-db
           property: connectionString
+      - key: USE_CLOUDINARY
+        value: true
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false  # You'll need to set this manually
+      - key: CLOUDINARY_API_KEY
+        sync: false  # You'll need to set this manually
+      - key: CLOUDINARY_API_SECRET
+        sync: false  # You'll need to set this manually
       - key: CORS_ALLOWED_ORIGINS
-        sync: false
+        sync: false  # Add your frontend URLs manually
 
-databases:
-  - name: edusystem-db
-    databaseName: edusystem
-    user: edusystem
+# Note: To use this file:
+# 1. Push to GitHub
+# 2. Go to Render Dashboard
+# 3. Click "New" → "Blueprint"
+# 4. Connect your repository
+# 5. Render will read this file and create all services
+# 6. You'll still need to set Cloudinary credentials manually
