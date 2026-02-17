@@ -3,6 +3,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView, LoginView, LogoutView, ProfileView, ChangePasswordView
 )
+from .views_setup import initialize_production_data
 
 app_name = 'accounts'
 
@@ -13,4 +14,5 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('profile/', ProfileView.as_view(), name='profile'),
     path('change-password/', ChangePasswordView.as_view(), name='change_password'),
+    path('initialize-data/', initialize_production_data, name='initialize_data'),
 ]
