@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
-    'drf_yasg',
+    # 'drf_yasg',  # Temporarily disabled for deployment
     'cloudinary_storage',
     'cloudinary',
     
