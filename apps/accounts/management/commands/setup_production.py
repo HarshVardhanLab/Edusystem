@@ -25,7 +25,7 @@ class Command(BaseCommand):
             return
         
         # Check if already set up
-        if User.objects.filter(email='admin@novalibrary.com').exists():
+        if User.objects.filter(email='superadmin@novalibrary.com').exists():
             self.stdout.write(self.style.WARNING('Production data already exists. Skipping setup.'))
             return
         
@@ -42,21 +42,30 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS(f'✓ Superuser created: {superuser.email}'))
             
+            # Create library owner user
+            self.stdout.write('Creating library owner...')
+            library_owner = User.objects.create_user(
+                email='admin@novalibrary.com',
+                password='Admin@123',
+                first_name='Nova',
+                last_name='Admin',
+                phone='9876543210',
+                role='LIBRARY_OWNER'
+            )
+            self.stdout.write(self.style.SUCCESS(f'✓ Library owner created: {library_owner.email}'))
+            
             # Create test library
             self.stdout.write('Creating test library...')
             library = Library.objects.create(
+                owner=library_owner,
                 library_id='LIB1020',
                 name='Nova Study Library',
-                owner_name='Nova Admin',
-                email='admin@novalibrary.com',
                 phone='9876543210',
                 address='123 Main Street, City, State 12345',
                 total_seats=50,
                 opening_time='06:00:00',
                 closing_time='23:00:00'
             )
-            library.set_password('Admin@123')
-            library.save()
             self.stdout.write(self.style.SUCCESS(f'✓ Library created: {library.library_id}'))
             
             # Create seats
