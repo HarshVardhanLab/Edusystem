@@ -29,7 +29,7 @@ django-cors-headers==4.3.1
 django-filter==23.5
 
 # API Documentation (temporarily disabled for deployment)
-# drf-yasg==1.21.7
+drf-yasg==1.21.7
 
 # Timezone
 pytz==2024.1
