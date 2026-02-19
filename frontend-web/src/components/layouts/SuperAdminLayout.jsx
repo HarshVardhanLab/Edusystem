@@ -51,33 +51,32 @@ const SuperAdminLayout = () => {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-purple-900 to-blue-900 transform ${
+      <div className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-purple-900 via-indigo-900 to-purple-900 transform ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } transition-all duration-300 ease-in-out lg:translate-x-0 lg:relative lg:flex lg:flex-col ${
         sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'
-      } w-64 relative`}>
+      } w-64 relative shadow-2xl`}>
         
-        {/* Curved edges */}
-        <div className="hidden lg:block absolute top-0 right-0 w-8 h-8 bg-gray-100 rounded-bl-3xl"></div>
-        <div className="hidden lg:block absolute bottom-0 right-0 w-8 h-8 bg-gray-100 rounded-tl-3xl"></div>
+        {/* Decorative top accent */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500"></div>
         
-        {/* Collapse button in the middle */}
+        {/* Collapse button */}
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 bg-purple-700 hover:bg-purple-600 text-white p-2 rounded-full shadow-lg transition-all duration-300 z-50 border-2 border-purple-600"
+          className="hidden lg:block absolute -right-3 top-20 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white p-2 rounded-full shadow-lg transition-all duration-300 z-50 border-2 border-purple-800"
           title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <FontAwesomeIcon icon={sidebarCollapsed ? faChevronRight : faChevronLeft} size="sm" />
         </button>
         
         {/* Logo */}
-        <div className="flex items-center justify-center h-16 px-6 bg-black bg-opacity-20 flex-shrink-0">
+        <div className="flex items-center justify-center h-20 px-6 border-b border-purple-800/50">
           <div className="flex items-center space-x-3">
-            <FontAwesomeIcon icon={faCrown} className="text-2xl text-yellow-400" />
+            <FontAwesomeIcon icon={faCrown} className="text-3xl text-yellow-400" />
             {!sidebarCollapsed && (
               <div>
-                <h1 className="text-white font-bold text-lg">Nova LBS</h1>
-                <p className="text-purple-200 text-xs">Super Admin</p>
+                <h1 className="text-white font-bold text-xl">Nova LBS</h1>
+                <p className="text-purple-300 text-xs">Super Admin</p>
               </div>
             )}
           </div>
@@ -90,7 +89,7 @@ const SuperAdminLayout = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 mt-8 px-4 overflow-y-auto">
+        <nav className="flex-1 mt-6 px-3 overflow-y-auto">
           <div className="space-y-2">
             {navigation.map((item) => (
               <button
@@ -99,10 +98,10 @@ const SuperAdminLayout = () => {
                   navigate(item.href);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'px-4'} py-3 text-sm font-medium rounded-lg transition-colors ${
+                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-3' : 'px-4'} py-3 text-sm font-medium rounded-lg transition-all duration-200 group ${
                   isActive(item.href)
-                    ? 'bg-white bg-opacity-20 text-white'
-                    : 'text-purple-200 hover:bg-white hover:bg-opacity-10 hover:text-white'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/50 text-white'
+                    : 'text-purple-200 hover:bg-purple-800/50 hover:text-white'
                 }`}
                 title={sidebarCollapsed ? item.name : ''}
               >
@@ -114,7 +113,7 @@ const SuperAdminLayout = () => {
         </nav>
 
         {/* User info and logout */}
-        <div className="p-4 bg-black bg-opacity-20 flex-shrink-0">
+        <div className="p-4 border-t border-purple-800/50">
           {!sidebarCollapsed && (
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
@@ -124,19 +123,22 @@ const SuperAdminLayout = () => {
                 <p className="text-white text-sm font-medium truncate">
                   {user?.full_name || user?.email || 'Super Admin'}
                 </p>
-                <p className="text-purple-200 text-xs">System Administrator</p>
+                <p className="text-purple-300 text-xs">System Administrator</p>
               </div>
             </div>
           )}
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'px-4'} py-2 text-sm font-medium text-purple-200 hover:text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors`}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-3' : 'px-4'} py-2 text-sm font-medium text-purple-200 hover:text-white hover:bg-purple-800/50 rounded-lg transition-colors`}
             title={sidebarCollapsed ? 'Sign Out' : ''}
           >
             <FontAwesomeIcon icon={faSignOutAlt} className={`text-lg ${sidebarCollapsed ? '' : 'mr-3'}`} />
             {!sidebarCollapsed && 'Sign Out'}
           </button>
         </div>
+        
+        {/* Bottom Accent */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500"></div>
       </div>
 
       {/* Main content */}

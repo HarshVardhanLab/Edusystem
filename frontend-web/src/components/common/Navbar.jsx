@@ -1,11 +1,24 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getUser, getRefreshToken } from '../../utils/auth';
 import { authService } from '../../services/authService';
 import toast from 'react-hot-toast';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = getUser();
+
+  const getPageTitle = () => {
+    const path = location.pathname;
+    const segments = path.split('/').filter(Boolean);
+    const lastSegment = segments[segments.length - 1];
+    
+    // Convert kebab-case to Title Case
+    return lastSegment
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   const handleLogout = async () => {
     try {
@@ -21,7 +34,7 @@ const Navbar = () => {
   return (
     <div className="bg-white shadow-sm border-b">
       <div className="flex items-center justify-between px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-800">Dashboard</h1>
+        <h1 className="text-xl font-semibold text-gray-800">{getPageTitle()}</h1>
         <div className="flex items-center space-x-4">
           <span className="text-sm text-gray-600">{user?.email}</span>
           <button
