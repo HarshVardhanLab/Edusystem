@@ -61,9 +61,18 @@ const SuperAdminLayout = () => {
         <div className="hidden lg:block absolute top-0 right-0 w-8 h-8 bg-gray-100 rounded-bl-3xl"></div>
         <div className="hidden lg:block absolute bottom-0 right-0 w-8 h-8 bg-gray-100 rounded-tl-3xl"></div>
         
+        {/* Collapse button in the middle */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 bg-purple-700 hover:bg-purple-600 text-white p-2 rounded-full shadow-lg transition-all duration-300 z-50 border-2 border-purple-600"
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <FontAwesomeIcon icon={sidebarCollapsed ? faChevronRight : faChevronLeft} size="sm" />
+        </button>
+        
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-6 bg-black bg-opacity-20 flex-shrink-0">
-          <div className={`flex items-center space-x-3 ${sidebarCollapsed ? 'lg:w-full lg:justify-center' : ''}`}>
+        <div className="flex items-center justify-center h-16 px-6 bg-black bg-opacity-20 flex-shrink-0">
+          <div className="flex items-center space-x-3">
             <FontAwesomeIcon icon={faCrown} className="text-2xl text-yellow-400" />
             {!sidebarCollapsed && (
               <div>
@@ -74,28 +83,10 @@ const SuperAdminLayout = () => {
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-white hover:text-gray-300"
+            className="lg:hidden text-white hover:text-gray-300 absolute right-4"
           >
             <FontAwesomeIcon icon={faTimes} />
           </button>
-          {!sidebarCollapsed && (
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="hidden lg:block text-white hover:text-gray-300 ml-2"
-              title="Collapse sidebar"
-            >
-              <FontAwesomeIcon icon={faChevronLeft} />
-            </button>
-          )}
-          {sidebarCollapsed && (
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="hidden lg:block text-white hover:text-gray-300 absolute right-2"
-              title="Expand sidebar"
-            >
-              <FontAwesomeIcon icon={faChevronRight} />
-            </button>
-          )}
         </div>
 
         {/* Navigation */}

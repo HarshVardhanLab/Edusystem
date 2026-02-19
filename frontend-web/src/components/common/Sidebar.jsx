@@ -12,16 +12,21 @@ const Sidebar = ({ menuItems }) => {
       <div className="absolute top-0 right-0 w-8 h-8 bg-gray-100 rounded-bl-3xl"></div>
       <div className="absolute bottom-0 right-0 w-8 h-8 bg-gray-100 rounded-tl-3xl"></div>
       
-      <div className="p-6 flex items-center justify-between relative">
-        {!isCollapsed && <h2 className="text-2xl font-bold">Library System</h2>}
-        {isCollapsed && <div className="w-full"></div>}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`p-2 rounded-lg hover:bg-gray-700 transition-colors ${isCollapsed ? 'mx-auto' : 'ml-auto'}`}
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
+      {/* Collapse button in the middle */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="absolute top-1/2 -right-3 transform -translate-y-1/2 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-all duration-300 z-50 border-2 border-gray-600"
+        title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+      </button>
+      
+      <div className="p-6 flex items-center justify-center">
+        {!isCollapsed ? (
+          <h2 className="text-2xl font-bold">Library System</h2>
+        ) : (
+          <div className="text-2xl font-bold">LS</div>
+        )}
       </div>
       <nav className="mt-6">
         {menuItems.map((item) => {
