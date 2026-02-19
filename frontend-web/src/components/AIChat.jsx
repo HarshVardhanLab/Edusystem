@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, User, Bot, Loader2, TrendingUp, Calendar, FileText, Lightbulb, BarChart3, Image as ImageIcon, Plus, MessageSquare, Trash2, Menu } from 'lucide-react';
+import { Send, Sparkles, User, Bot, Loader2, TrendingUp, Calendar, FileText, Lightbulb, BarChart3, Image as ImageIcon, Plus, MessageSquare, Trash2, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import aiService from '../services/aiService';
 import { getUserRole } from '../utils/auth';
@@ -234,17 +234,24 @@ const AIChat = () => {
       {/* Sidebar */}
       <div className={`ai-chat-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
-          <button className="new-chat-btn" onClick={startNewChat}>
+          <button className="new-chat-btn" onClick={startNewChat} title="Start new chat">
             <Plus size={20} />
-            <span>New Chat</span>
+            {sidebarOpen && <span>New Chat</span>}
+          </button>
+          <button 
+            className="sidebar-collapse-btn"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            {sidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
           </button>
         </div>
         
         <div className="sidebar-content">
           <div className="chat-history-section">
-            <h3>Recent Chats</h3>
+            {sidebarOpen && <h3>Recent Chats</h3>}
             {chatHistory.length === 0 ? (
-              <p className="no-history">No chat history yet</p>
+              sidebarOpen && <p className="no-history">No chat history yet</p>
             ) : (
               <div className="chat-history-list">
                 {chatHistory.map((chat) => (
@@ -252,21 +259,26 @@ const AIChat = () => {
                     key={chat.id}
                     className={`chat-history-item ${currentChatId === chat.id ? 'active' : ''}`}
                     onClick={() => loadChat(chat)}
+                    title={sidebarOpen ? '' : chat.title}
                   >
-                    <MessageSquare size={16} />
-                    <div className="chat-info">
-                      <span className="chat-title">{chat.title}</span>
-                      <span className="chat-time">
-                        {new Date(chat.timestamp).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <button
-                      className="delete-chat-btn"
-                      onClick={(e) => deleteChat(chat.id, e)}
-                      title="Delete chat"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <MessageSquare size={18} />
+                    {sidebarOpen && (
+                      <>
+                        <div className="chat-info">
+                          <span className="chat-title">{chat.title}</span>
+                          <span className="chat-time">
+                            {new Date(chat.timestamp).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <button
+                          className="delete-chat-btn"
+                          onClick={(e) => deleteChat(chat.id, e)}
+                          title="Delete chat"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -279,12 +291,15 @@ const AIChat = () => {
       <div className="ai-chat-main">
         <div className="ai-chat-header">
           <div className="header-content">
-            <button 
-              className="sidebar-toggle"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              <Menu size={24} />
-            </button>
+            {!sidebarOpen && (
+              <button 
+                className="sidebar-toggle"
+                onClick={() => setSidebarOpen(true)}
+                title="Open sidebar"
+              >
+                <Menu size={24} />
+              </button>
+            )}
             <div className="header-icon">
               <Sparkles size={24} />
             </div>

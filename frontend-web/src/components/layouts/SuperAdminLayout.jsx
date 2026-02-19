@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faCrown, faBuilding, faKey, faChartLine, faUsers, faCog,
-  faSignOutAlt, faBars, faTimes, faHome, faDatabase
+  faSignOutAlt, faBars, faTimes, faHome, faDatabase, faChevronLeft, faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 import { authService } from '../../services/authService';
 import { getUser, getRefreshToken } from '../../utils/auth';
@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 
 const SuperAdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const user = getUser();
@@ -50,24 +51,35 @@ const SuperAdminLayout = () => {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-purple-900 to-blue-900 transform ${
+      <div className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-purple-900 to-blue-900 transform ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:flex lg:flex-col`}>
+      } transition-all duration-300 ease-in-out lg:translate-x-0 lg:relative lg:flex lg:flex-col ${
+        sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'
+      } w-64`}>
         
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-6 bg-black bg-opacity-20 flex-shrink-0">
-          <div className="flex items-center space-x-3">
+          <div className={`flex items-center space-x-3 ${sidebarCollapsed ? 'lg:justify-center lg:w-full' : ''}`}>
             <FontAwesomeIcon icon={faCrown} className="text-2xl text-yellow-400" />
-            <div>
-              <h1 className="text-white font-bold text-lg">Nova LBS</h1>
-              <p className="text-purple-200 text-xs">Super Admin</p>
-            </div>
+            {!sidebarCollapsed && (
+              <div>
+                <h1 className="text-white font-bold text-lg">Nova LBS</h1>
+                <p className="text-purple-200 text-xs">Super Admin</p>
+              </div>
+            )}
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-white hover:text-gray-300"
           >
             <FontAwesomeIcon icon={faTimes} />
+          </button>
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="hidden lg:block text-white hover:text-gray-300 ml-2"
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <FontAwesomeIcon icon={sidebarCollapsed ? faChevronRight : faChevronLeft} />
           </button>
         </div>
 
@@ -81,14 +93,15 @@ const SuperAdminLayout = () => {
                   navigate(item.href);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center' : ''} px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                   isActive(item.href)
                     ? 'bg-white bg-opacity-20 text-white'
                     : 'text-purple-200 hover:bg-white hover:bg-opacity-10 hover:text-white'
                 }`}
+                title={sidebarCollapsed ? item.name : ''}
               >
-                <FontAwesomeIcon icon={item.icon} className="mr-3 text-lg" />
-                {item.name}
+                <FontAwesomeIcon icon={item.icon} className={`text-lg ${sidebarCollapsed ? '' : 'mr-3'}`} />
+                {!sidebarCollapsed && item.name}
               </button>
             ))}
           </div>
@@ -96,23 +109,26 @@ const SuperAdminLayout = () => {
 
         {/* User info and logout */}
         <div className="p-4 bg-black bg-opacity-20 flex-shrink-0">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-              <FontAwesomeIcon icon={faCrown} className="text-white" />
+          {!sidebarCollapsed && (
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                <FontAwesomeIcon icon={faCrown} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm font-medium truncate">
+                  {user?.full_name || user?.email || 'Super Admin'}
+                </p>
+                <p className="text-purple-200 text-xs">System Administrator</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-white text-sm font-medium truncate">
-                {user?.full_name || user?.email || 'Super Admin'}
-              </p>
-              <p className="text-purple-200 text-xs">System Administrator</p>
-            </div>
-          </div>
+          )}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center px-4 py-2 text-sm font-medium text-purple-200 hover:text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors"
+            className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center' : ''} px-4 py-2 text-sm font-medium text-purple-200 hover:text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors`}
+            title={sidebarCollapsed ? 'Sign Out' : ''}
           >
-            <FontAwesomeIcon icon={faSignOutAlt} className="mr-3" />
-            Sign Out
+            <FontAwesomeIcon icon={faSignOutAlt} className={sidebarCollapsed ? '' : 'mr-3'} />
+            {!sidebarCollapsed && 'Sign Out'}
           </button>
         </div>
       </div>
