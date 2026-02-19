@@ -4,12 +4,13 @@ import Navbar from '../common/Navbar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faChartLine, faCheck, faCreditCard, faBell, faUser, faClock,
-  faStickyNote, faListCheck, faQrcode, faTrophy
+  faStickyNote, faListCheck, faQrcode, faTrophy, faRobot
 } from '@fortawesome/free-solid-svg-icons';
 
 const StudentLayout = () => {
   const menuItems = [
     { path: '/student/dashboard', label: 'Dashboard', icon: <FontAwesomeIcon icon={faChartLine} /> },
+    { path: '/student/ai-assistant', label: 'AI Assistant', icon: <FontAwesomeIcon icon={faRobot} /> },
     { path: '/student/timer', label: 'Study Timer', icon: <FontAwesomeIcon icon={faClock} /> },
     { path: '/student/notes', label: 'My Notes', icon: <FontAwesomeIcon icon={faStickyNote} /> },
     { path: '/student/tasks', label: 'Tasks', icon: <FontAwesomeIcon icon={faListCheck} /> },

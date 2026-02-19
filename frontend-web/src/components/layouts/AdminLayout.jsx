@@ -2,11 +2,12 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from '../common/Sidebar';
 import Navbar from '../common/Navbar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChartLine, faUsers, faChair, faCheck, faCreditCard, faBell, faChartBar, faBuilding, faQrcode } from '@fortawesome/free-solid-svg-icons';
+import { faChartLine, faUsers, faChair, faCheck, faCreditCard, faBell, faChartBar, faBuilding, faQrcode, faRobot } from '@fortawesome/free-solid-svg-icons';
 
 const AdminLayout = () => {
   const menuItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: <FontAwesomeIcon icon={faChartLine} /> },
+    { path: '/admin/ai-assistant', label: 'AI Assistant', icon: <FontAwesomeIcon icon={faRobot} /> },
     { path: '/admin/students', label: 'Students', icon: <FontAwesomeIcon icon={faUsers} /> },
     { path: '/admin/seats', label: 'Seats', icon: <FontAwesomeIcon icon={faChair} /> },
     { path: '/admin/attendance', label: 'Attendance', icon: <FontAwesomeIcon icon={faCheck} /> },

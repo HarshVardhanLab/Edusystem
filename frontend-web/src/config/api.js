@@ -1,4 +1,8 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+// Production API URL
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://nova-library-backend.onrender.com';
+
+// For local development, use:
+// export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
 export const API_ENDPOINTS = {
   // Auth
@@ -63,4 +67,12 @@ export const API_ENDPOINTS = {
   SUPERADMIN_LIBRARY_TOGGLE: (id) => `/api/v1/superadmin/libraries/${id}/toggle-status/`,
   SUPERADMIN_LICENSES: '/api/v1/superadmin/licenses/',
   SUPERADMIN_LICENSE_DETAIL: (id) => `/api/v1/superadmin/licenses/${id}/`,
+  
+  // AI Assistant
+  AI_CHAT: '/api/v1/ai/chat/',
+  AI_ANALYZE_PERFORMANCE: '/api/v1/ai/analyze-performance/',
+  AI_STUDY_PLAN: '/api/v1/ai/study-plan/',
+  AI_SUMMARIZE_NOTES: '/api/v1/ai/summarize-notes/',
+  AI_BUSINESS_INSIGHTS: '/api/v1/ai/business-insights/',
+  AI_CHAT_HISTORY: '/api/v1/ai/chat-history/',
 };

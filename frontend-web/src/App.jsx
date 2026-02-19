@@ -35,6 +35,7 @@ import StudentAttendance from './pages/student/Attendance';
 import StudentSubscription from './pages/student/Subscription';
 import StudentNotifications from './pages/student/Notifications';
 import StudentProfile from './pages/student/Profile';
+import AIAssistantPage from './pages/student/AIAssistantPage';
 import { isAuthenticated, getUserRole } from './utils/auth';
 
 function App() {
@@ -66,6 +67,7 @@ function App() {
           </ProtectedRoute>
         }>
           <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="ai-assistant" element={<AIAssistantPage />} />
           <Route path="students" element={<Students />} />
           <Route path="seats" element={<Seats />} />
           <Route path="attendance" element={<Attendance />} />
@@ -93,6 +95,7 @@ function App() {
           <Route path="subscription" element={<StudentSubscription />} />
           <Route path="notifications" element={<StudentNotifications />} />
           <Route path="profile" element={<StudentProfile />} />
+          <Route path="ai-assistant" element={<AIAssistantPage />} />
         </Route>
 
         <Route path="/superadmin" element={

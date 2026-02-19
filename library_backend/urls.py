@@ -27,6 +27,9 @@ urlpatterns = [
     # Health Check & Monitoring (no auth required)
     path('api/v1/', include('apps.core.urls')),
     
+    # AI Assistant
+    path('api/v1/ai/', include('apps.ai_assistant.urls')),
+    
     # API v1
     path('api/v1/accounts/', include('apps.accounts.urls')),
     path('api/v1/libraries/', include('apps.libraries.urls')),

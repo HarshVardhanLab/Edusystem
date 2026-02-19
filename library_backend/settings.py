@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.notifications',
     'apps.reports',
     'apps.superadmin',
+    'apps.ai_assistant',
 ]
 
 MIDDLEWARE = [
