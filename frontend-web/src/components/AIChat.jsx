@@ -145,9 +145,10 @@ const AIChat = () => {
       // Reload chat history after new message
       loadChatHistory();
     } catch (error) {
+      console.error('AI Chat Error:', error);
       const errorMessage = {
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: error.response?.data?.error || error.response?.data?.detail || error.message || 'Sorry, I encountered an error. Please try again.',
         timestamp: new Date().toISOString(),
         isError: true
       };
