@@ -55,11 +55,15 @@ const SuperAdminLayout = () => {
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } transition-all duration-300 ease-in-out lg:translate-x-0 lg:relative lg:flex lg:flex-col ${
         sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'
-      } w-64`}>
+      } w-64 relative`}>
+        
+        {/* Curved edges */}
+        <div className="hidden lg:block absolute top-0 right-0 w-8 h-8 bg-gray-100 rounded-bl-3xl"></div>
+        <div className="hidden lg:block absolute bottom-0 right-0 w-8 h-8 bg-gray-100 rounded-tl-3xl"></div>
         
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-6 bg-black bg-opacity-20 flex-shrink-0">
-          <div className={`flex items-center space-x-3 ${sidebarCollapsed ? 'lg:justify-center lg:w-full' : ''}`}>
+          <div className={`flex items-center space-x-3 ${sidebarCollapsed ? 'lg:w-full lg:justify-center' : ''}`}>
             <FontAwesomeIcon icon={faCrown} className="text-2xl text-yellow-400" />
             {!sidebarCollapsed && (
               <div>
@@ -74,13 +78,24 @@ const SuperAdminLayout = () => {
           >
             <FontAwesomeIcon icon={faTimes} />
           </button>
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="hidden lg:block text-white hover:text-gray-300 ml-2"
-            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            <FontAwesomeIcon icon={sidebarCollapsed ? faChevronRight : faChevronLeft} />
-          </button>
+          {!sidebarCollapsed && (
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="hidden lg:block text-white hover:text-gray-300 ml-2"
+              title="Collapse sidebar"
+            >
+              <FontAwesomeIcon icon={faChevronLeft} />
+            </button>
+          )}
+          {sidebarCollapsed && (
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="hidden lg:block text-white hover:text-gray-300 absolute right-2"
+              title="Expand sidebar"
+            >
+              <FontAwesomeIcon icon={faChevronRight} />
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
@@ -93,7 +108,7 @@ const SuperAdminLayout = () => {
                   navigate(item.href);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center' : ''} px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'px-4'} py-3 text-sm font-medium rounded-lg transition-colors ${
                   isActive(item.href)
                     ? 'bg-white bg-opacity-20 text-white'
                     : 'text-purple-200 hover:bg-white hover:bg-opacity-10 hover:text-white'
@@ -124,10 +139,10 @@ const SuperAdminLayout = () => {
           )}
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center' : ''} px-4 py-2 text-sm font-medium text-purple-200 hover:text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors`}
+            className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'px-4'} py-2 text-sm font-medium text-purple-200 hover:text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-colors`}
             title={sidebarCollapsed ? 'Sign Out' : ''}
           >
-            <FontAwesomeIcon icon={faSignOutAlt} className={sidebarCollapsed ? '' : 'mr-3'} />
+            <FontAwesomeIcon icon={faSignOutAlt} className={`text-lg ${sidebarCollapsed ? '' : 'mr-3'}`} />
             {!sidebarCollapsed && 'Sign Out'}
           </button>
         </div>
