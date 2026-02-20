@@ -19,6 +19,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     ROLE_CHOICES = [
+        ('SUPER_ADMIN', 'Super Admin'),
         ('LIBRARY_OWNER', 'Library Owner'),
     ]
     
